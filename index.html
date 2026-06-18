@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Syona Roots — Digital Marketing Dashboard</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS Excel Parser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    
+    <!-- Header Block -->
+    <header class="dashboard-header">
+      <div class="header-left">
+        <div class="avatar">SR</div>
+        <div class="header-title">
+          <h1>Syona Roots — Digital Marketing Dashboard</h1>
+          <p id="dashboardSubTitle">Q1 2026 - Jan - Mar · SVP & Internal Team</p>
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <!-- CSV Uploader Button -->
+        <input type="file" id="csvFileInput" class="file-input-hidden" accept=".csv,.xlsx,.xls" />
+        <button class="upload-btn" id="uploadBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          Import Excel / CSV
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label for="quarterDropdown" style="font-size: 12px; font-weight: 600; color: #666; white-space: nowrap;">Quarter:</label>
+          <select id="quarterDropdown" style="
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: white;
+            color: #1f4e79;
+            cursor: pointer;
+            min-width: 100px;
+          ">
+            <option value="Q1">Q1 (Jan - Mar)</option>
+            <option value="Q2">Q2 (Apr - Jun)</option>
+            <option value="Q3">Q3 (Jul - Sep)</option>
+            <option value="Q4">Q4 (Oct - Dec)</option>
+          </select>
+        </div>
+        <!-- Dynamic Date Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-month="All Q1">All Q1</button>
+          <button class="filter-tab" data-month="January">January</button>
+          <button class="filter-tab" data-month="February">February</button>
+          <button class="filter-tab" data-month="March">March</button>
+        </div>
+        
+        <div class="header-target-info">
+          <span>Monthly target: <strong>₹50 Lakh</strong></span><br>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Last updated: Mar 2026</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Auto-Load File Status Banner -->
+    <div id="dataStatusBanner" style="display: none; padding: 10px 16px; border: 1px dashed #ddd; border-radius: 6px; font-size: 13px; font-weight: 500; align-items: center; justify-content: space-between; gap: 8px; margin-top: -12px;">
+      <span id="dataStatusText" style="color: #666;">Loading data...</span>
+      <button id="dataStatusClose" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #999; line-height: 1;" onclick="this.parentElement.style.display='none'">×</button>
+    </div>
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="kpi-grid">
+      <!-- Leads -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Total Leads</span>
+        <div class="kpi-value" id="totalLeadsVal">-</div>
+        <div class="kpi-subtext" id="totalLeadsSub">-</div>
+        <span class="kpi-tag" id="totalLeadsTag">Q1 combined</span>
+      </div>
+      <!-- Spend -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Total Spend</span>
+        <div class="kpi-value" id="totalSpendVal">-</div>
+        <div class="kpi-subtext" id="totalSpendSub">-</div>
+        <span class="kpi-tag" id="totalSpendTag">Q1 combined</span>
+      </div>
+      <!-- Conversions -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Conversions</span>
+        <div class="kpi-value" id="conversionsVal">-</div>
+        <div class="kpi-subtext" id="conversionsSub">-</div>
+        <span class="kpi-tag" id="conversionsTag">Q1 combined</span>
+      </div>
+      <!-- Value -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Conversion Value</span>
+        <div class="kpi-value" id="convValueVal">-</div>
+        <div class="kpi-subtext" id="convValueSub">-</div>
+        <span class="kpi-tag" id="convValueTag">Q1 combined</span>
+      </div>
+      <!-- Meta CPL -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Meta CPL</span>
+        <div class="kpi-value" id="metaCplVal">-</div>
+        <div class="kpi-subtext" id="metaCplSub">-</div>
+        <span class="kpi-tag" id="metaCplTag">Q1 combined</span>
+      </div>
+      <!-- Organic Clicks -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Organic Clicks</span>
+        <div class="kpi-value" id="organicClicksVal">-</div>
+        <div class="kpi-subtext" id="organicClicksSub">-</div>
+        <span class="kpi-tag" id="organicClicksTag">Q1 combined</span>
+      </div>
+      <!-- CPC -->
+      <div class="card kpi-card">
+        <span class="kpi-title">Cost Per Conversion</span>
+        <div class="kpi-value" id="costPerConvVal">-</div>
+        <div class="kpi-subtext" id="costPerConvSub">-</div>
+        <span class="kpi-tag" id="costPerConvTag">Q1 combined</span>
+      </div>
+      <!-- Target Hit -->
+      <div class="card kpi-card">
+        <span class="kpi-title" id="targetLabel">Q1 vs Target</span>
+        <div class="kpi-value" id="targetAchievedVal">-</div>
+        <div class="kpi-subtext" id="targetAchievedSub">-</div>
+        <span class="kpi-tag" id="targetStatusText" style="font-weight: 600;">-</span>
+      </div>
+    </section>
+
+    <!-- Revenue Performance Vs Target -->
+    <div class="section-label">Revenue Performance vs Target</div>
+    <section class="dashboard-row-3col">
+      <!-- Month 1 -->
+      <div class="card target-card" id="targetCard0">
+        <div class="target-left">
+          <span class="target-title" id="targetTitle0">Jan – vs ₹50L target</span>
+          <div class="target-pct miss" id="targetPct0">54%</div>
+          <span class="target-val-label">of target achieved</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar miss" id="targetBar0" style="width: 54%"></div>
+          </div>
+        </div>
+        <div class="target-value">
+          <div class="target-val-label">actual value</div>
+          <div class="target-val-amount" id="targetAmount0">₹27.08L</div>
+        </div>
+      </div>
+      <!-- Month 2 -->
+      <div class="card target-card" id="targetCard1">
+        <div class="target-left">
+          <span class="target-title" id="targetTitle1">Feb – vs ₹50L target</span>
+          <div class="target-pct miss" id="targetPct1">51%</div>
+          <span class="target-val-label">of target achieved</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar miss" id="targetBar1" style="width: 51%"></div>
+          </div>
+        </div>
+        <div class="target-value">
+          <div class="target-val-label">actual value</div>
+          <div class="target-val-amount" id="targetAmount1">₹25.53L</div>
+        </div>
+      </div>
+      <!-- Month 3 -->
+      <div class="card target-card" id="targetCard2">
+        <div class="target-left">
+          <span class="target-title" id="targetTitle2">Mar – vs ₹50L target</span>
+          <div class="target-pct hit" id="targetPct2">160%</div>
+          <span class="target-val-label">of target achieved</span>
+          <div class="progress-bar-container">
+            <div class="progress-bar hit" id="targetBar2" style="width: 100%"></div>
+          </div>
+        </div>
+        <div class="target-value">
+          <div class="target-val-label">actual value</div>
+          <div class="target-val-amount" id="targetAmount2">₹79.86L</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lead Generation & Spend Charts -->
+    <div class="section-label">Lead Generation & Spend</div>
+    <section class="dashboard-row-2col">
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Lead sources — monthly</span>
+          <span class="chart-subtitle">Facebook · Call · Website · WhatsApp · Others</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="leadSourcesChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Spend vs conversion value</span>
+          <span class="chart-subtitle">Total spend (Meta + Google) vs revenue generated per month</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="spendValueChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product & Customer Intelligence -->
+    <div class="section-label">Product & Customer Intelligence</div>
+    <section class="dashboard-row-2col">
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Model-wise enquiries</span>
+          <span class="chart-subtitle">Which product series generates the most interest</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="modelEnquiriesChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Customer type breakdown</span>
+          <span class="chart-subtitle">Who is enquiring — by sector</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="customerTypeChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pipeline & Conversion Analysis -->
+    <div class="section-label">Pipeline & Conversion Analysis</div>
+    <section class="dashboard-row-mixed">
+      <!-- Funnel Chart -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title" id="funnelTitle">Lead pipeline funnel</span>
+          <span class="chart-subtitle">From first contact to closed deal</span>
+        </div>
+        <div class="funnel-container">
+          <!-- Total Leads -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Total leads</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelLeadsBar" style="width: 100%;">Total leads</div>
+            </div>
+            <span class="funnel-stat" id="funnelLeadsVal">- <span>100%</span></span>
+          </div>
+          <!-- Need Follow-up -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Need follow-up</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelFollowUpBar" style="width: 68.6%;">Need follow-up</div>
+            </div>
+            <span class="funnel-stat" id="funnelFollowUpVal">- <span>-</span></span>
+          </div>
+          <!-- Cold Enquiry -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Cold enquiry</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelColdBar" style="width: 9.4%;">Cold enquiry</div>
+            </div>
+            <span class="funnel-stat" id="funnelColdVal">- <span>-</span></span>
+          </div>
+          <!-- Quote Given -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Quote given</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelQuoteGivenBar" style="width: 2.2%;">Quote given</div>
+            </div>
+            <span class="funnel-stat" id="funnelQuoteGivenVal">- <span>-</span></span>
+          </div>
+          <!-- Quotes Live -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Quotes live</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelQuoteLiveBar" style="width: 1.2%;">Quotes live</div>
+            </div>
+            <span class="funnel-stat" id="funnelQuoteLiveVal">- <span>-</span></span>
+          </div>
+          <!-- Converted -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Converted</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelConvertedBar" style="width: 1.0%;">Converted</div>
+            </div>
+            <span class="funnel-stat" id="funnelConvertedVal">- <span>-</span></span>
+          </div>
+          <!-- Sale Lost -->
+          <div class="funnel-stage">
+            <span class="funnel-label">Sale lost</span>
+            <div class="funnel-bar-wrapper">
+              <div class="funnel-bar" id="funnelSaleLostBar" style="width: 4.7%;">Sale lost</div>
+            </div>
+            <span class="funnel-stat" id="funnelSaleLostVal">- <span>-</span></span>
+          </div>
+        </div>
+      </div>
+      <!-- Donut Chart -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Conversion by channel</span>
+          <span class="chart-subtitle">Which channel closed the sale</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="channelConversionsChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Region-wise Lead Distribution & SEO -->
+    <section class="dashboard-row-2col">
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Region-wise lead distribution</span>
+          <span class="chart-subtitle">North · South · East · West per month</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="regionLeadsChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">SEO — clicks, impressions & position</span>
+          <span class="chart-subtitle">Google Search Console trend</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="seoChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paid Media Performance -->
+    <div class="section-label">Paid Media Performance</div>
+    <section class="dashboard-row-2col">
+      <!-- Meta Ads -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Meta ads — spend, reach & CPL trend</span>
+          <span class="chart-subtitle">Facebook + Instagram combined</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="metaAdsChart"></canvas>
+        </div>
+      </div>
+      <!-- Google Ads Table -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Google Ads — campaign performance</span>
+          <span class="chart-subtitle">Sorted by conversions</span>
+        </div>
+        <div class="table-container">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Spend</th>
+                <th>Interact.</th>
+                <th>CTR</th>
+                <th>CPC</th>
+                <th>Conv.</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
+            <tbody id="googleCampaignsBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- City-Wise Conversion Value -->
+    <div class="section-label">City-Wise Conversion Value</div>
+    <section class="dashboard-row-mixed">
+      <!-- Top Cities Table -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Top cities by conversion value</span>
+          <span class="chart-subtitle">Sorted by value</span>
+        </div>
+        <div class="table-container" style="max-height: 330px; overflow-y: auto;">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>City</th>
+                <th>State</th>
+                <th>Month</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody id="citiesBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <!-- SVG Map -->
+      <div class="card">
+        <div class="chart-title-container">
+          <span class="chart-title">Region leads — trend</span>
+          <span class="chart-subtitle">South dominates, West growing</span>
+        </div>
+        <div class="map-svg-container">
+          <svg width="220" height="220" viewBox="0 0 200 200">
+            <!-- North -->
+            <path id="path_north" class="map-path" d="M 60,30 L 140,30 L 140,80 L 100,100 L 60,80 Z" />
+            <text x="100" y="55" font-family="Outfit" font-size="10" font-weight="600" fill="#334155" text-anchor="middle" pointer-events="none">NORTH</text>
+            <!-- West -->
+            <path id="path_west" class="map-path" d="M 30,80 L 100,100 L 90,140 L 30,120 Z" />
+            <text x="55" y="105" font-family="Outfit" font-size="10" font-weight="600" fill="#334155" text-anchor="middle" pointer-events="none">WEST</text>
+            <!-- East -->
+            <path id="path_east" class="map-path" d="M 100,100 L 170,80 L 170,120 L 110,140 Z" />
+            <text x="145" y="105" font-family="Outfit" font-size="10" font-weight="600" fill="#334155" text-anchor="middle" pointer-events="none">EAST</text>
+            <!-- South -->
+            <path id="path_south" class="map-path" d="M 90,140 L 110,140 L 100,185 Z" />
+            <text x="100" y="160" font-family="Outfit" font-size="10" font-weight="600" fill="#334155" text-anchor="middle" pointer-events="none">SOUTH</text>
+            <!-- Connecting center dot -->
+            <circle cx="100" cy="100" r="4" fill="#64748b" />
+          </svg>
+        </div>
+        <div class="region-list" id="regionLeadsList">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SVP Insights & Recommendations -->
+    <div class="section-label">SVP Insights & Recommendations</div>
+    <section class="card" style="padding: 24px;">
+      <div class="insights-row">
+        <!-- Key Findings -->
+        <div>
+          <div class="insight-panel-title">Key findings</div>
+          <div class="insight-list" id="keyFindingsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+        <!-- Q2 Action Priorities -->
+        <div>
+          <div class="insight-panel-title" id="insightsPrioritiesTitle">Q2 action priorities</div>
+          <div class="insight-list" id="q2PrioritiesList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer style="text-align: center; padding: 24px 0 12px 0; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 12px;">
+      Syona Roots Digital Marketing Dashboard · <span id="footerText">Q1 2026 (Jan–Mar)</span> · Data: Meta Ads, Google Ads, Search Console, GA4, CRM · Target: ₹50 Lakh/mo
+    </footer>
+  </div>
+
+  <!-- App modules entry scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/insights.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
