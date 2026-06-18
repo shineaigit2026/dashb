@@ -1,5 +1,39 @@
 window.DashboardCharts = {
   chartInstances: {},
+  getQuarterMap: function () {
+
+ const months =
+ [...new Set(window.DashboardData.leadsData.map(x => x.month))];
+
+ const result={};
+
+ months.forEach(month=>{
+
+   const monthIndex=new Date(`${month} 1, 2026`).getMonth();
+
+   const q=`Q${Math.floor(monthIndex/3)+1}`;
+
+   if(!result[q])
+      result[q]=[];
+
+   result[q].push(month);
+
+ });
+
+ return result;
+},
+
+getMonthsForQuarter:function(){
+
+ const dropdown=document.getElementById('quarterDropdown');
+
+ const quarter=dropdown ? dropdown.value : 'Q1';
+
+ const quarterMap=this.getQuarterMap();
+
+ return quarterMap[quarter] || [];
+
+},
   resetCanvas: function(canvasId) {
     if (this.chartInstances[canvasId]) {
       this.chartInstances[canvasId].destroy();
@@ -7,26 +41,11 @@ window.DashboardCharts = {
     }
   },
   
-  getActiveQuarterMonths: function() {
-    const dropdown = document.getElementById('quarterDropdown');
-    const quarter = dropdown ? dropdown.value : 'Q1';
-    const availableMonths = {
-      'Q1': ['January', 'February', 'March'],
-      'Q2': ['April', 'May', 'June'],
-      'Q3': ['July', 'August', 'September'],
-      'Q4': ['October', 'November', 'December']
-    };
-    const monthsInQuarter = availableMonths[quarter] || [];
-    const dataObj = window.DashboardData;
-    const availableMonthsInData = dataObj.leadsData.map(d => d.month);
-    
-    // Return only months in this quarter that actually have data
-    const result = monthsInQuarter.filter(m => availableMonthsInData.includes(m));
-    if (result.length === 0) {
-      return monthsInQuarter;
-    }
-    return result;
-  },
+  getActiveQuarterMonths:function(){
+
+ return this.getMonthsForQuarter();
+
+},
 
   drawLeadSourcesChart: function(monthFilter) {
     const canvasId = 'leadSourcesChart';
@@ -195,13 +214,8 @@ window.DashboardCharts = {
     let data = [];
     if (monthFilter.startsWith('All ')) {
       const quarter = monthFilter.replace("All ", "");
-      const availableMonths = {
-        'Q1': ['January', 'February', 'March'],
-        'Q2': ['April', 'May', 'June'],
-        'Q3': ['July', 'August', 'September'],
-        'Q4': ['October', 'November', 'December']
-      };
-      const monthsInQuarter = availableMonths[quarter] || [];
+      const monthsInQuarter =
+this.getQuarterMap()[quarter] || [];
       const dataObjList = dataObj.productEnquiriesMonthly.filter(d => monthsInQuarter.includes(d.month));
       
       labels.forEach(lbl => {
@@ -253,13 +267,8 @@ window.DashboardCharts = {
     let data = [];
     if (monthFilter.startsWith('All ')) {
       const quarter = monthFilter.replace("All ", "");
-      const availableMonths = {
-        'Q1': ['January', 'February', 'March'],
-        'Q2': ['April', 'May', 'June'],
-        'Q3': ['July', 'August', 'September'],
-        'Q4': ['October', 'November', 'December']
-      };
-      const monthsInQuarter = availableMonths[quarter] || [];
+     const monthsInQuarter =
+this.getQuarterMap()[quarter] || [];
       const dataObjList = dataObj.customerTypeMonthly.filter(d => monthsInQuarter.includes(d.month));
       
       labels.forEach(lbl => {
@@ -311,13 +320,8 @@ window.DashboardCharts = {
     let data = [];
     if (monthFilter.startsWith('All ')) {
       const quarter = monthFilter.replace("All ", "");
-      const availableMonths = {
-        'Q1': ['January', 'February', 'March'],
-        'Q2': ['April', 'May', 'June'],
-        'Q3': ['July', 'August', 'September'],
-        'Q4': ['October', 'November', 'December']
-      };
-      const monthsInQuarter = availableMonths[quarter] || [];
+      const monthsInQuarter =
+this.getQuarterMap()[quarter] || [];
       const dataObjList = dataObj.channelConversionsMonthly.filter(d => monthsInQuarter.includes(d.month));
       
       labels.forEach(lbl => {
