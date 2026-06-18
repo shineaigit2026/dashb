@@ -107,34 +107,81 @@
   // QUARTERS DETECTION & METADATA HELPERS
   // ============================================
   
-  function detectQuarters() {
-    const months = window.DashboardData.leadsData.map(d => d.month);
-    const quarters = [];
-    
-    if (months.some(m => ['January', 'February', 'March'].includes(m))) {
-      quarters.push('Q1');
-    }
-    if (months.some(m => ['April', 'May', 'June'].includes(m))) {
-      quarters.push('Q2');
-    }
-    if (months.some(m => ['July', 'August', 'September'].includes(m))) {
-      quarters.push('Q3');
-    }
-    if (months.some(m => ['October', 'November', 'December'].includes(m))) {
-      quarters.push('Q4');
-    }
-    
-    detectedQuarters = quarters.length > 0 ? quarters : ['Q1'];
-    return detectedQuarters;
-  }
-  
-  function getMonthsForQuarter(quarter) {
-    const monthsInQuarter = availableMonths[quarter] || [];
-    const dataObj = window.DashboardData;
-    const availableMonthsInData = dataObj.leadsData.map(d => d.month);
-    return monthsInQuarter.filter(m => availableMonthsInData.includes(m));
-  }
+ function detectQuarters() {
 
+ const allMonths=[];
+
+ Object.values(window.DashboardData).forEach(dataset=>{
+
+   if(Array.isArray(dataset)){
+
+      dataset.forEach(r=>{
+
+        if(r.month && !allMonths.includes(r.month)){
+            allMonths.push(r.month);
+        }
+
+      });
+
+   }
+
+ });
+
+ const monthOrder=[
+   'January',
+   'February',
+   'March',
+   'April',
+   'May',
+   'June',
+   'July',
+   'August',
+   'September',
+   'October',
+   'November',
+   'December'
+ ];
+
+ allMonths.sort(
+   (a,b)=>
+   monthOrder.indexOf(a)-monthOrder.indexOf(b)
+ );
+
+ availableMonths={};
+
+ let quarterNo=1;
+
+ for(let i=0;i<allMonths.length;i+=3){
+
+   availableMonths[`Q${quarterNo}`]=allMonths.slice(i,i+3);
+
+   quarterNo++;
+
+ }
+
+ detectedQuarters=Object.keys(availableMonths);
+
+ if(detectedQuarters.length===0){
+
+   detectedQuarters=['Q1'];
+
+   availableMonths={
+     Q1:['January']
+   };
+
+ }
+
+ activeQuarter=detectedQuarters[0];
+
+ return detectedQuarters;
+
+}
+  
+ function getMonthsForQuarter(quarter){
+
+ return availableMonths[quarter] || [];
+
+}
   function normalizeMonth(monthStr) {
     if (!monthStr) return "";
     const clean = String(monthStr).trim().toLowerCase().substring(0, 3);
@@ -150,50 +197,97 @@
   // DYNAMIC FILTER TABS & DROPDOWN POPULATOR
   // ============================================
 
-  function updateQuarterDropdown() {
-    const dropdown = document.getElementById('quarterDropdown');
-    if (!dropdown) return;
-    
-    const quarters = detectQuarters();
-    dropdown.innerHTML = '';
-    
-    quarters.forEach(q => {
-      const option = document.createElement('option');
-      option.value = q;
-      const monthsList = (availableMonths[q] || []).map(m => m.substring(0, 3)).join(' - ');
-      option.textContent = `${q} (${monthsList})`;
-      if (q === activeQuarter) option.selected = true;
-      dropdown.appendChild(option);
-    });
-  }
+  function updateQuarterDropdown(){
 
-  function updateFilterTabs() {
-    const container = document.querySelector('.filter-tabs');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    const monthsInQuarter = getMonthsForQuarter(activeQuarter);
-    
-    // All Quarter Tab
-    const allQuarterBtn = document.createElement('button');
-    allQuarterBtn.className = 'filter-tab active';
-    allQuarterBtn.dataset.month = `All ${activeQuarter}`;
-    allQuarterBtn.textContent = `All ${activeQuarter}`;
-    allQuarterBtn.addEventListener('click', () => handleTabClick(allQuarterBtn));
-    container.appendChild(allQuarterBtn);
-    
-    // Month Tab Buttons
-    monthsInQuarter.forEach(month => {
-      const btn = document.createElement('button');
-      btn.className = 'filter-tab';
-      btn.dataset.month = month;
-      btn.textContent = month.substring(0, 3);
-      btn.addEventListener('click', () => handleTabClick(btn));
-      container.appendChild(btn);
-    });
-    
-    activeMonth = `All ${activeQuarter}`;
-  }
+ const dropdown=document.getElementById(
+   'quarterDropdown'
+ );
+
+ if(!dropdown) return;
+
+ dropdown.innerHTML='';
+
+ detectQuarters();
+
+ detectedQuarters.forEach(q=>{
+
+   const option=document.createElement(
+     'option'
+   );
+
+   option.value=q;
+
+   option.textContent=
+     `${q} (${availableMonths[q]
+       .map(m=>m.substring(0,3))
+       .join(' - ')})`;
+
+   dropdown.appendChild(option);
+
+ });
+
+ dropdown.value=activeQuarter;
+
+}
+ function updateFilterTabs(){
+
+ const container=document.querySelector(
+   '.filter-tabs'
+ );
+
+ if(!container) return;
+
+ container.innerHTML='';
+
+ const months=getMonthsForQuarter(
+   activeQuarter
+ );
+
+ const allBtn=document.createElement(
+   'button'
+ );
+
+ allBtn.className=
+   'filter-tab active';
+
+ allBtn.dataset.month=
+   `All ${activeQuarter}`;
+
+ allBtn.textContent=
+   `All ${activeQuarter}`;
+
+ allBtn.addEventListener(
+   'click',
+   ()=>handleTabClick(allBtn)
+ );
+
+ container.appendChild(allBtn);
+
+ months.forEach(month=>{
+
+   const btn=document.createElement(
+     'button'
+   );
+
+   btn.className='filter-tab';
+
+   btn.dataset.month=month;
+
+   btn.textContent=
+     month.substring(0,3);
+
+   btn.addEventListener(
+     'click',
+     ()=>handleTabClick(btn)
+   );
+
+   container.appendChild(btn);
+
+ });
+
+ activeMonth=`All ${activeQuarter}`;
+
+}
   
   function handleTabClick(tabElement) {
     const tabs = document.querySelectorAll('.filter-tab');
@@ -289,47 +383,87 @@
     }
   }
 
-  function updateMonthlyTargets() {
-    const dataObj = window.DashboardData;
-    const monthsInQuarter = getMonthsForQuarter(activeQuarter);
-    
-    for (let i = 0; i < 3; i++) {
-      const cardEl = document.getElementById(`targetCard${i}`);
-      const titleEl = document.getElementById(`targetTitle${i}`);
-      const pctEl = document.getElementById(`targetPct${i}`);
-      const barEl = document.getElementById(`targetBar${i}`);
-      const amountEl = document.getElementById(`targetAmount${i}`);
-      
-      if (!cardEl) continue;
-      
-      if (i < monthsInQuarter.length) {
-        cardEl.style.display = 'flex';
-        const month = monthsInQuarter[i];
-        const monthShort = month.substring(0, 3);
-        
-        const pipe = dataObj.pipelineData.find(d => d.month === month);
-        const val = pipe ? pipe.value : 0;
-        const pct = (val / 5000000) * 100;
-        
-        titleEl.textContent = `${monthShort} – vs ₹50L target`;
-        amountEl.textContent = formatCurrencyLakhs(val);
-        pctEl.textContent = `${Math.round(pct)}%`;
-        
-        barEl.style.width = `${Math.min(pct, 100)}%`;
-        
-        if (pct >= 100) {
-          pctEl.className = 'target-pct hit';
-          barEl.className = 'progress-bar hit';
-        } else {
-          pctEl.className = 'target-pct miss';
-          barEl.className = 'progress-bar miss';
-        }
-      } else {
-        cardEl.style.display = 'none'; // Hide if month is not in the data
-      }
-    }
-  }
+ function updateMonthlyTargets(){
 
+ const dataObj=window.DashboardData;
+
+ const months=getMonthsForQuarter(
+   activeQuarter
+ );
+
+ const targetPerMonth=5000000;
+
+ months.forEach((month,index)=>{
+
+   const card=document.getElementById(
+     `targetCard${index}`
+   );
+
+   if(!card) return;
+
+   card.style.display='flex';
+
+   const title=document.getElementById(
+     `targetTitle${index}`
+   );
+
+   const pct=document.getElementById(
+     `targetPct${index}`
+   );
+
+   const amount=document.getElementById(
+     `targetAmount${index}`
+   );
+
+   const bar=document.getElementById(
+     `targetBar${index}`
+   );
+
+   const pipe=dataObj.pipelineData.find(
+     x=>x.month===month
+   );
+
+   const value=pipe?.value || 0;
+
+   const percent=
+      (value/targetPerMonth)*100;
+
+   title.textContent=
+     `${month.substring(0,3)}
+      – vs ₹50L target`;
+
+   amount.textContent=
+     formatCurrencyLakhs(value);
+
+   pct.textContent=
+     `${Math.round(percent)}%`;
+
+   bar.style.width=
+     `${Math.min(percent,100)}%`;
+
+   if(percent>=100){
+
+      pct.className=
+      'target-pct hit';
+
+      bar.className=
+      'progress-bar hit';
+
+   }
+
+   else{
+
+      pct.className=
+      'target-pct miss';
+
+      bar.className=
+      'progress-bar miss';
+
+   }
+
+ });
+
+}
   function updatePipelineFunnel(data) {
     const { funnel } = data;
     const stages = [
@@ -909,38 +1043,91 @@
     text.innerHTML = message + detailHtml;
   }
 
-  async function loadExcelData() {
-    console.log('🔄 Attempting to fetch data.xlsx from repository path...');
-    try {
-      const response = await fetch('data.xlsx');
-      if (!response.ok) throw new Error('data.xlsx file not found.');
-      const arrayBuffer = await response.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer);
-      
-      if (typeof XLSX === 'undefined') {
-        throw new Error('SheetJS library is not loaded. Ensure you have internet access to fetch SheetJS CDN.');
-      }
-      
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetsData = {};
-      
-      workbook.SheetNames.forEach(sheetName => {
-        const worksheet = workbook.Sheets[sheetName];
-        sheetsData[sheetName] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-      });
-      
-      const res = processExcelData(sheetsData);
-      if (res.warnings.length > 0) {
-        showStatusBanner('warning', `✓ Loaded data.xlsx automatically from repository. Found ${res.warnings.length} data validation warnings.`, res.warnings);
-      } else {
-        showStatusBanner('success', `✓ Automatically loaded latest data from data.xlsx committed in the repository.`);
-      }
-    } catch (err) {
-      console.warn('Could not auto-load data.xlsx:', err.message);
-      // Fallback to data.csv
-      loadCSVData();
-    }
-  }
+ async function loadExcelData(){
+
+ try{
+
+   const response=await fetch(
+
+     `data.xlsx?v=${Date.now()}`
+
+   );
+
+   if(!response.ok){
+
+      throw new Error(
+       'data.xlsx missing'
+      );
+
+   }
+
+   const buffer=
+     await response.arrayBuffer();
+
+   const workbook=XLSX.read(
+
+     buffer,
+
+     {type:'array'}
+
+   );
+
+   const sheetsData={};
+
+   workbook.SheetNames.forEach(
+    sheet=>{
+
+      sheetsData[sheet]=
+      XLSX.utils.sheet_to_json(
+
+        workbook.Sheets[sheet],
+
+        {defval:''}
+
+      );
+
+   });
+
+   const res=
+   processExcelData(
+     sheetsData
+   );
+
+   if(res.warnings.length){
+
+      showStatusBanner(
+
+       'warning',
+
+       `Loaded with ${res.warnings.length} warnings`,
+
+       res.warnings
+
+      );
+
+   }
+
+   else{
+
+      showStatusBanner(
+
+      'success',
+
+      '✓ data.xlsx synced'
+
+      );
+
+   }
+
+ }
+
+ catch(error){
+
+   console.log(error);
+
+ }
+
+}
 
   async function loadCSVData() {
     console.log('🔄 Attempting to fetch data.csv from repository path...');
@@ -1060,3 +1247,8 @@
     loadExcelData();
   });
 })();
+setInterval(()=>{
+
+ loadExcelData();
+
+},300000);
