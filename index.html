@@ -26,34 +26,18 @@
         </div>
       </div>
       
-      <div class="header-right">
-        <!-- CSV Uploader Button -->
-        <input type="file" id="csvFileInput" class="file-input-hidden" accept=".csv,.xlsx,.xls" />
-        <button class="upload-btn" id="uploadBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-          </svg>
-          Import Excel / CSV
-        </button>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <label for="quarterDropdown" style="font-size: 12px; font-weight: 600; color: #666; white-space: nowrap;">Quarter:</label>
-          <select id="quarterDropdown" style="
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-            background: white;
-            color: #1f4e79;
-            cursor: pointer;
-            min-width: 100px;
-          ">
-            <option value="Q1">Q1 (Jan - Mar)</option>
-            <option value="Q2">Q2 (Apr - Jun)</option>
-            <option value="Q3">Q3 (Jul - Sep)</option>
-            <option value="Q4">Q4 (Oct - Dec)</option>
-          </select>
-        </div>
+      <!-- PASTE THIS ENTIRE BLOCK -->
+<div style="display: flex; align-items: center; gap: 12px;">
+    <label for="quarterDropdown" style="font-size: 12px; font-weight: 600; color: #666; white-space: nowrap;">Quarter:</label>
+    <select id="quarterDropdown" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; font-weight: 600; background: white; color: #1f4e79; cursor: pointer; min-width: 100px;">
+        <option value="Q1">Q1 (Jan - Mar)</option>
+        <option value="Q2">Q2 (Apr - Jun)</option>
+        <option value="Q3">Q3 (Jul - Sep)</option>
+        <option value="Q4">Q4 (Oct - Dec)</option>
+    </select>
+    <div class="filter-tabs"></div>
+</div>
+<!-- END BLOCK -->
         <!-- Dynamic Date Tabs -->
         <div class="filter-tabs">
           <button class="filter-tab active" data-month="All Q1">All Q1</button>
@@ -456,9 +440,9 @@
   </div>
 
   <!-- App modules entry scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/charts.js"></script>
-  <script src="js/insights.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/excel-reader.js"></script>
+<script src="js/app-for-master-excel.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/insights.js"></script>
 </body>
 </html>
