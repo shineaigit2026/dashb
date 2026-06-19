@@ -1,4 +1,14 @@
 /* app.js - DYNAMIC EXCEL / CSV LOADING, VALIDATION & QUARTER VIEWS */
+// Add at the very beginning of app.js (before dashboard initialization)
+if (window.DashboardData?.loadFromServer) {
+  window.DashboardData.loadFromServer().then(() => {
+    // Then run your existing dashboard code
+    // ... rest of your app.js continues
+  });
+} else {
+  // Fallback: run existing code directly
+  // ... rest of your app.js continues
+}
 (function() {
   let activeMonth = 'All Q1';
   let activeQuarter = 'Q1';
